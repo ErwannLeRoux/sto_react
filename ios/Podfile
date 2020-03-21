@@ -34,6 +34,8 @@ target 'sto_app' do
   pod 'glog', :podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
 
+  pod 'pushbots-react-native', :path => '../node_modules/pushbots-react-native'
+
   target 'sto_appTests' do
     inherit! :search_paths
     # Pods for testing

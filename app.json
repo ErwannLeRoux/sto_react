@@ -1,4 +1,7 @@
 {
   "name": "sto_app",
-  "displayName": "sto_app"
+  "displayName": "sto_app",
+  "android": {
+    "package": "com.stocorp.sto",
+  },
 }

@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "425188071045",
+    "firebase_url": "https://saladetomateoignons-28252.firebaseio.com",
+    "project_id": "saladetomateoignons-28252",
+    "storage_bucket": "saladetomateoignons-28252.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:425188071045:android:5cf5097d60c98fb6177bec",
+        "android_client_info": {
+          "package_name": "com.sto_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "425188071045-80ufbt07rcbuf9vrs0t1tkn2v5rc01q8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxmzPK1-Qcn5CeBw9yXks4BI5EUb0v5r4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "425188071045-80ufbt07rcbuf9vrs0t1tkn2v5rc01q8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
