@@ -65,8 +65,16 @@ class PurchaseDetail extends React.Component {
 
   render() {
     let purchase = this.props.navigation.state.params;
+    console.log(purchase.paid)
     let user = purchase.user;
     let statusCheckbox = [];
+    let supplements = [];
+    let menus = [];
+    let paid = <Text style={[styles.line, styles.red]}>Non payée</Text>;
+
+    if(purchase.paid) {
+      paid = <Text style={[styles.line, styles.green]}>Payée en ligne</Text>;
+    }
 
     for (let i = 0; i < this.state.status.length; i++) {
       statusCheckbox.push(
@@ -93,6 +101,31 @@ class PurchaseDetail extends React.Component {
       );
     }
 
+    for (let i = 0; i < purchase.purshaseProducts.length; i++) {
+      let purchaseProduct = purchase.purshaseProducts[i];
+      supplements.push(
+        <Text style={styles.supplements} key={i}>
+          {purchaseProduct.qty}x {purchaseProduct.product.name}
+        </Text>,
+      );
+    }
+
+    for (let i = 0; i < purchase.purshaseMenuses.length; i++) {
+      menus.push(
+        <Text style={styles.menus} key={i}>
+          1x {purchase.purshaseMenuses[i].formule.name}
+        </Text>,
+      );
+
+      if (purchase.purshaseMenuses[i].customerComment != '') {
+        menus.push(
+          <Text style={styles.menus} key={i + '-comment'}>
+            ( commentaire : {purchase.purshaseMenuses[i].customerComment} )
+          </Text>,
+        );
+      }
+    }
+
     return (
       <SafeAreaView>
         <ScrollView>
@@ -103,15 +136,28 @@ class PurchaseDetail extends React.Component {
             </Text>
             <Text style={styles.line}>{formatDate(purchase.date)}</Text>
             <Text style={styles.line}>{purchase.status}</Text>
-            <Text style={styles.line}>Montant: {purchase.total}€</Text>
           </View>
 
           <View style={styles.part}>
+            <Text style={styles.line}>Montant: {purchase.total}€</Text>
+            <Text style={styles.line}>
+              Preparer pour: {formatDate(purchase.deliveryHour)}
+            </Text>
+          </View>
+
+
+          <View style={styles.part}>
             <Text style={styles.line}>Menus</Text>
+            {menus}
           </View>
 
           <View style={styles.part}>
             <Text style={styles.line}>Suppléments</Text>
+            {supplements}
+          </View>
+
+          <View style={styles.part}>
+            {paid}
           </View>
 
           <View style={styles.part}>{statusCheckbox}</View>
@@ -137,6 +183,7 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     margin: 20,
+    alignSelf: 'stretch',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -149,13 +196,29 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   line: {
-    backgroundColor: '#FDD7E4',
     alignSelf: 'stretch',
     textAlign: 'center',
     fontSize: 20,
+    
+  },
+  supplements: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
+    fontSize: 15,
+  },
+  menus: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
+    fontSize: 15,
   },
   part: {
     marginBottom: 20,
+  },
+  green: {
+    color: 'green',
+  },
+  red: {
+    color: 'red',
   },
 });
 
