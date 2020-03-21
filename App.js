@@ -1,17 +1,17 @@
-import { createStackNavigator } from 'react-navigation-stack';
-import { createAppContainer } from 'react-navigation';
+import {createStackNavigator} from 'react-navigation-stack';
+import {createAppContainer} from 'react-navigation';
 
-import PurchasesList from "./Components/PurchasesList";
-import PurchaseDetail from "./Components/PurchaseDetail";
+import PurchasesList from './Components/PurchasesList';
+import PurchaseDetail from './Components/PurchaseDetail';
 
 const screens = {
   PurchaseList: {
-    screen: PurchasesList
+    screen: PurchasesList,
   },
   PurchaseDetail: {
-    screen: PurchaseDetail
-  }
+    screen: PurchaseDetail,
+  },
 }
 const HomeStack = createStackNavigator(screens);
 
-export default createAppContainer(HomeStack)
+export default createAppContainer(HomeStack);
