@@ -1,5 +1,7 @@
 import React, {useEffect} from 'react';
+import notifee from '@notifee/react-native';
 import {
+  Alert,
   Text,
   TouchableHighlight,
   SafeAreaView,
@@ -14,15 +16,15 @@ import {firebase, messaging} from '@react-native-firebase/messaging';
 
 const PUSH_ENDPOINT = 'http://saladetomateoignons.ddns.net/api/push_tokens';
 
-const firebaseConfig = {
-  apiKey: 'AIzaSyDxmzPK1-Qcn5CeBw9yXks4BI5EUb0v5r4',
-  authDomain: 'saladetomateoignons-28252.firebaseapp.com',
-  databaseURL: 'https://saladetomateoignons-28252.firebaseio.com',
-  storageBucket: 'saladetomateoignons-28252.appspot.com',
-  projectId: 'saladetomateoignons-28252',
-  messagingSenderId: '425188071045',
-  appId: '1:425188071045:android:5cf5097d60c98fb6177bec',
-};
+function refresh(context) {
+  axios.get('http://saladetomateoignons.ddns.net/api/purshases').then(res => {
+    let body = res.data['hydra:member'];
+    context.setState({purchases: sortAndFilterList(body)});
+    context.setState({
+      refresh: !context.state.refresh,
+    });
+  });
+}
 
 function formatDate(dateStr) {
   let date = new Date(dateStr);
@@ -38,7 +40,7 @@ function formatDate(dateStr) {
   return `${hours}h${minutes}`;
 }
 
-function Item({avatar_url, subtitle, navigation, item}) {
+function Item({avatar_url, subtitle, navigation, item, context}) {
   if (item.trustScore < 5) {
     avatar_url = 'http://saladetomateoignons.ddns.net/images/red_score.png';
   } else if (item.trustScore < 8) {
@@ -48,30 +50,48 @@ function Item({avatar_url, subtitle, navigation, item}) {
   }
   return (
     <TouchableHighlight
-      onPress={() => navigation.navigate('PurchaseDetail', item)}>
+      onPress={() =>
+        navigation.navigate('PurchaseDetail', {
+          item: item,
+          onGoBack: () => refresh(context),
+        })
+      }>
       <ListItem
         key={`key-${item.id}`}
         title={`${item.user.firstname} ${item.user.lastname} - ${formatDate(
-          item.date,
+          item.deliveryHour,
         )} `}
         leftAvatar={{
           source: avatar_url && {uri: avatar_url},
           title: item.user.firstname,
         }}
-        subtitle={`Indice de confiance ${item.trustScore}/10`}
+        subtitle={`Passée à ${formatDate(item.date)}`}
       />
     </TouchableHighlight>
   );
 }
 
+function sortAndFilterList(list) {
+  let filtered = list.filter(function(purchase) {
+    return purchase.status !== 'delivered' && purchase.status !== 'canceled';
+  });
+
+  let sorted = filtered.sort(function(a, b) {
+    return new Date(a.deliveryHour) - new Date(b.deliveryHour);
+  });
+
+  return sorted;
+}
+
 export default class PurchasesList extends React.Component {
   state = {
     purchases: [],
+    refresh: false,
   };
 
-  onPress = () => {
-    this.props.navigation.navigate('PurchaseDetail');
-  };
+  constructor() {
+    super();
+  }
 
   registerForPushNotificationsAsync = async () => {
     if (!firebase.apps.length) {
@@ -102,39 +122,42 @@ export default class PurchasesList extends React.Component {
       })
       .catch(console.error);
 
-    firebase.messaging().setBackgroundMessageHandler(async remoteMessage => {
-      console.log('Message handled in the background!', remoteMessage);
-    });
-
     firebase.messaging().onMessage(payload => {
-      console.log('Message received. ', payload);
+      Alert.alert(
+        'Nouvelle Commande !',
+        'Mettre à jour la liste ?',
+        [
+          {
+            text: 'Non',
+            onPress: () => {
+              console.log('cancel');
+            },
+            style: 'cancel',
+          },
+          {
+            text: 'Oui',
+            onPress: () => {
+              axios
+                .get('http://saladetomateoignons.ddns.net/api/purshases')
+                .then(res => {
+                  let body = res.data['hydra:member'];
+                  this.setState({purchases: sortAndFilterList(body)});
+                  this.setState({
+                    refresh: !this.state.refresh,
+                  });
+                });
+            },
+          },
+        ],
+        {cancelable: false},
+      );
     });
   };
 
   componentDidMount() {
     axios.get('http://saladetomateoignons.ddns.net/api/purshases').then(res => {
       let body = res.data['hydra:member'];
-      let promises = [];
-
-      // fetch associated user
-      body.forEach(purshase => {
-        let promise = axios
-          .get(`http://saladetomateoignons.ddns.net${purshase.user}`)
-          .then(user => {
-            purshase.user = {
-              id: user.data.DiscordID,
-              firstname: user.data.firstname,
-              lastname: user.data.lastname,
-              phone: user.data.phone,
-            };
-          });
-
-        promises.push(promise);
-      });
-
-      Promise.all(promises).then(() => {
-        this.setState({purchases: body});
-      });
+      this.setState({purchases: sortAndFilterList(body)});
     });
     this.registerForPushNotificationsAsync();
   }
@@ -145,10 +168,12 @@ export default class PurchasesList extends React.Component {
         {
           <FlatList
             data={this.state.purchases}
+            refreshing={this.state.refresh}
             renderItem={({item}) => (
               <Item
-                avatar_url={""}
+                avatar_url={''}
                 navigation={this.props.navigation}
+                context={this}
                 item={item}
               />
             )}

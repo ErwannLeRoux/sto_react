@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import call from 'react-native-phone-call';
 import {CheckBox} from 'react-native-elements';
 import axios from 'axios';
+const qs = require('querystring')
 
 function callCustomer(phoneNumber) {
   const args = {
@@ -35,18 +36,18 @@ function formatDate(dateStr) {
   return `${hours}h${minutes}`;
 }
 
-function sendNotification(user, status) {
-  axios
-    .post('http://saladetomateoignons.ddns.net:8088/bot/updateState', {
-      username: user.id,
-      status: status,
-    })
-    .then(function(response) {
-      console.log(response);
-    })
-    .catch(function(error) {
-      console.error(error);
-    });
+function sendNotification(discordID, status) {
+  if (status !== 'waiting') {
+    axios
+      .post('http://saladetomateoignons.ddns.net:8088/bot/updateState', {
+        username: discordID,
+        status: status,
+      })
+      .then(function(response) {})
+      .catch(function(error) {
+        console.error(error);
+      });
+  }
 }
 
 class PurchaseDetail extends React.Component {
@@ -55,24 +56,41 @@ class PurchaseDetail extends React.Component {
 
     this.state = {
       status: [
+        {id: 'waiting', name: 'En attente de validation', checked: false},
         {id: 'validate', name: 'Validée', checked: false},
         {id: 'in_preparation', name: 'En cours de préparation', checked: false},
         {id: 'ready', name: 'Préparée', checked: false},
         {id: 'delivered', name: 'Délivrée', checked: false},
+        {id: 'canceled', name: 'Refusée', checked: false},
       ],
     };
   }
 
+  componentWillUnmount() {
+    this.props.navigation.state.params.onGoBack();
+  }
+
   render() {
-    let purchase = this.props.navigation.state.params;
-    console.log(purchase.paid)
+    let purchase = this.props.navigation.state.params.item;
     let user = purchase.user;
+
+    let currentStatus = this.state.status.find(status => {
+      return status.id === purchase.status;
+    });
+
+    let copy = this.state.status;
+    copy.map(status => {
+      if (status === currentStatus) {
+        status.checked = true;
+      }
+    });
+
     let statusCheckbox = [];
     let supplements = [];
     let menus = [];
     let paid = <Text style={[styles.line, styles.red]}>Non payée</Text>;
 
-    if(purchase.paid) {
+    if (purchase.paid) {
       paid = <Text style={[styles.line, styles.green]}>Payée en ligne</Text>;
     }
 
@@ -84,16 +102,40 @@ class PurchaseDetail extends React.Component {
           checked={this.state.status[i].checked}
           onPress={() => {
             let array = this.state.status;
-            array[i].checked = !array[i].checked;
-            // uncheck other
             array.map((item, index) => {
               if (index != i) {
                 item.checked = false;
+              } else {
+                item.checked = true;
               }
             });
+
             this.setState({status: array});
             if (array[i].checked) {
-              sendNotification(user, array[i].id);
+              // call axios to update purchase
+              let requestBody = {
+                purchaseId: purchase.id,
+                status: array[i].id,
+              };
+
+              const config = {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+              };
+
+              axios
+                .post(
+                  'http://saladetomateoignons.ddns.net/updatePurchase',
+                  qs.stringify(requestBody),
+                  config,
+                )
+                .then(response => {
+                  //console.log(response);
+                });
+              sendNotification(user.DiscordID, array[i].id);
+              this.props.navigation.state.params.onGoBack();
+              this.props.navigation.goBack();
             }
           }}>
           }}
@@ -135,7 +177,10 @@ class PurchaseDetail extends React.Component {
               {user.firstname} {user.lastname}
             </Text>
             <Text style={styles.line}>{formatDate(purchase.date)}</Text>
-            <Text style={styles.line}>{purchase.status}</Text>
+            <Text style={styles.line}>{currentStatus.name}</Text>
+            <Text style={styles.line}>
+              Indice de confiance {purchase.trustScore}/10
+            </Text>
           </View>
 
           <View style={styles.part}>
@@ -144,7 +189,6 @@ class PurchaseDetail extends React.Component {
               Preparer pour: {formatDate(purchase.deliveryHour)}
             </Text>
           </View>
-
 
           <View style={styles.part}>
             <Text style={styles.line}>Menus</Text>
@@ -156,9 +200,7 @@ class PurchaseDetail extends React.Component {
             {supplements}
           </View>
 
-          <View style={styles.part}>
-            {paid}
-          </View>
+          <View style={styles.part}>{paid}</View>
 
           <View style={styles.part}>{statusCheckbox}</View>
 
@@ -199,7 +241,6 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     textAlign: 'center',
     fontSize: 20,
-    
   },
   supplements: {
     alignSelf: 'stretch',

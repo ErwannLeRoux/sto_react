@@ -1,5 +1,6 @@
 import {createStackNavigator} from 'react-navigation-stack';
 import {createAppContainer} from 'react-navigation';
+import {firebase, messaging} from '@react-native-firebase/messaging';
 
 import PurchasesList from './Components/PurchasesList';
 import PurchaseDetail from './Components/PurchaseDetail';

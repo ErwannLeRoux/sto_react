@@ -10,12 +10,14 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@notifee/react-native": "^0.2.0",
     "@react-native-community/masked-view": "^0.1.7",
     "@react-native-community/netinfo": "^5.6.2",
     "@react-native-firebase/app": "^6.3.4",
     "@react-native-firebase/messaging": "^6.3.4",
     "axios": "^0.19.2",
     "pushbots-react-native": "^1.1.7",
+    "querystring": "^0.2.0",
     "react": "16.9.0",
     "react-native": "0.61.5",
     "react-native-elements": "^1.2.7",
