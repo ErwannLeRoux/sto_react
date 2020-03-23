@@ -71,9 +71,22 @@ function Item({avatar_url, subtitle, navigation, item, context}) {
   );
 }
 
+function isToday(date) {
+  const today = new Date();
+  return (
+    date.getDate() == today.getDate() &&
+    date.getMonth() == today.getMonth() &&
+    date.getFullYear() == today.getFullYear()
+  );
+}
+
 function sortAndFilterList(list) {
   let filtered = list.filter(function(purchase) {
-    return purchase.status !== 'delivered' && purchase.status !== 'canceled';
+    let statusOk =
+      purchase.status !== 'delivered' && purchase.status !== 'canceled';
+    let dayOk = isToday(new Date(purchase.date));
+    console.log(dayOk)
+    return statusOk && dayOk;
   });
 
   let sorted = filtered.sort(function(a, b) {
