@@ -37,7 +37,7 @@ function formatDate(dateStr) {
 }
 
 function sendNotification(discordID, status) {
-  if (status !== 'waiting') {
+  if (status !== 'waiting' && discordID && discordID !== '') {
     axios
       .post('http://saladetomateoignons.ddns.net:8088/bot/updateState', {
         username: discordID,
