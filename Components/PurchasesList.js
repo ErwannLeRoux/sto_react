@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
-import notifee from '@notifee/react-native';
+import moment from 'moment';
+
 import {
   Alert,
   Text,
@@ -16,8 +17,38 @@ import {firebase, messaging} from '@react-native-firebase/messaging';
 
 const PUSH_ENDPOINT = 'http://saladetomateoignons.ddns.net/api/push_tokens';
 
+let today = moment();
+
+let date = today.date();
+if (date < 10) {
+  date = '0' + date;
+}
+let month = today.month() + 1;
+if (month < 10) {
+  month = '0' + month;
+}
+let year = today.year();
+let start = year + '-' + month + '-' + date;
+
+let tomorrow = moment();
+tomorrow.add(1, 'days');
+
+let date_end = tomorrow.date();
+if (date_end < 10) {
+  date_end = '0' + date_end;
+}
+let month_end = tomorrow.month() + 1;
+if (month_end < 10) {
+  month_end = '0' + month_end;
+}
+let year_end = tomorrow.year();
+let end = year_end + '-' + month_end + '-' + date_end;
+
+const PURCHASE_GET_URL =
+  `http://saladetomateoignons.ddns.net/api/purshases?deliveryHour[before]=${end}&deliveryHour[after]=${start}`;
+
 function refresh(context) {
-  axios.get('http://saladetomateoignons.ddns.net/api/purshases').then(res => {
+  axios.get(PURCHASE_GET_URL).then(res => {
     let body = res.data['hydra:member'];
     context.setState({purchases: sortAndFilterList(body)});
     context.setState({
@@ -85,7 +116,7 @@ function sortAndFilterList(list) {
     let statusOk =
       purchase.status !== 'delivered' && purchase.status !== 'canceled';
     let dayOk = isToday(new Date(purchase.date));
-    console.log(dayOk)
+    console.log(dayOk);
     return statusOk && dayOk;
   });
 
@@ -103,6 +134,7 @@ export default class PurchasesList extends React.Component {
   };
 
   constructor() {
+    console.log(PURCHASE_GET_URL);
     super();
   }
 
@@ -150,15 +182,13 @@ export default class PurchasesList extends React.Component {
           {
             text: 'Oui',
             onPress: () => {
-              axios
-                .get('http://saladetomateoignons.ddns.net/api/purshases')
-                .then(res => {
-                  let body = res.data['hydra:member'];
-                  this.setState({purchases: sortAndFilterList(body)});
-                  this.setState({
-                    refresh: !this.state.refresh,
-                  });
+              axios.get(PURCHASE_GET_URL).then(res => {
+                let body = res.data['hydra:member'];
+                this.setState({purchases: sortAndFilterList(body)});
+                this.setState({
+                  refresh: !this.state.refresh,
                 });
+              });
             },
           },
         ],
@@ -168,7 +198,7 @@ export default class PurchasesList extends React.Component {
   };
 
   componentDidMount() {
-    axios.get('http://saladetomateoignons.ddns.net/api/purshases').then(res => {
+    axios.get(PURCHASE_GET_URL).then(res => {
       let body = res.data['hydra:member'];
       this.setState({purchases: sortAndFilterList(body)});
     });
