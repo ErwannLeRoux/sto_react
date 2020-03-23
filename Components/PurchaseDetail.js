@@ -159,6 +159,14 @@ class PurchaseDetail extends React.Component {
         </Text>,
       );
 
+      if (purchase.purshaseMenuses[i].ingredients != '') {
+        menus.push(
+          <Text style={styles.menus} key={i + '-ing'}>
+            ( {purchase.purshaseMenuses[i].ingredients} )
+          </Text>,
+        );
+      }
+
       if (purchase.purshaseMenuses[i].customerComment != '') {
         menus.push(
           <Text style={styles.menus} key={i + '-comment'}>
