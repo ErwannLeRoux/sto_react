@@ -159,7 +159,7 @@ class PurchaseDetail extends React.Component {
         </Text>,
       );
 
-      if (purchase.purshaseMenuses[i].ingredients != '') {
+      if (purchase.purshaseMenuses[i].ingredients && purchase.purshaseMenuses[i].ingredients != '' ) {
         menus.push(
           <Text style={styles.menus} key={i + '-ing'}>
             ( {purchase.purshaseMenuses[i].ingredients} )
