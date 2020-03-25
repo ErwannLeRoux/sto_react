@@ -2,16 +2,18 @@ import React from 'react';
 import {
   Text,
   View,
+  ActivityIndicator,
   Button,
   StyleSheet,
   SafeAreaView,
+  Modal,
   ScrollView,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import call from 'react-native-phone-call';
 import {CheckBox} from 'react-native-elements';
 import axios from 'axios';
-const qs = require('querystring')
+const qs = require('querystring');
 
 function callCustomer(phoneNumber) {
   const args = {
@@ -55,6 +57,7 @@ class PurchaseDetail extends React.Component {
     super();
 
     this.state = {
+      loading: false,
       status: [
         {id: 'waiting', name: 'En attente de validation', checked: false},
         {id: 'validate', name: 'Validée', checked: false},
@@ -111,6 +114,7 @@ class PurchaseDetail extends React.Component {
             });
 
             this.setState({status: array});
+            this.setState({loading: true})
             if (array[i].checked) {
               // call axios to update purchase
               let requestBody = {
@@ -131,11 +135,11 @@ class PurchaseDetail extends React.Component {
                   config,
                 )
                 .then(response => {
-                  //console.log(response);
+                  sendNotification(user.DiscordID, array[i].id);
+                  this.setState({loading: false})
+                  this.props.navigation.state.params.onGoBack();
+                  this.props.navigation.goBack();
                 });
-              sendNotification(user.DiscordID, array[i].id);
-              this.props.navigation.state.params.onGoBack();
-              this.props.navigation.goBack();
             }
           }}>
           }}
@@ -159,7 +163,10 @@ class PurchaseDetail extends React.Component {
         </Text>,
       );
 
-      if (purchase.purshaseMenuses[i].ingredients && purchase.purshaseMenuses[i].ingredients != '' ) {
+      if (
+        purchase.purshaseMenuses[i].ingredients &&
+        purchase.purshaseMenuses[i].ingredients != ''
+      ) {
         menus.push(
           <Text style={styles.menus} key={i + '-ing'}>
             ( {purchase.purshaseMenuses[i].ingredients} )
@@ -211,6 +218,24 @@ class PurchaseDetail extends React.Component {
           <View style={styles.part}>{paid}</View>
 
           <View style={styles.part}>{statusCheckbox}</View>
+
+          <Modal
+            transparent={true}
+            animationType={'none'}
+            visible={this.state.loading}
+            onRequestClose={() => {
+              console.log('close modal');
+            }}>
+            <View style={styles.modalBackground}>
+              <View style={styles.activityIndicatorWrapper}>
+                <ActivityIndicator
+                  size="large"
+                  color="#007bff"
+                  animating={this.state.loading}
+                />
+              </View>
+            </View>
+          </Modal>
 
           <View style={styles.buttonContainer}>
             <Icon.Button
@@ -268,6 +293,22 @@ const styles = StyleSheet.create({
   },
   red: {
     color: 'red',
+  },
+  modalBackground: {
+    flex: 1,
+    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    backgroundColor: '#00000040'
+  },
+  activityIndicatorWrapper: {
+    backgroundColor: '#FFFFFF',
+    height: 100,
+    width: 100,
+    borderRadius: 10,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-around',
   },
 });
 
